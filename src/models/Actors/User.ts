@@ -7,3 +7,5 @@ class User {
     this.name = name;
   }
 }
+
+export { User };

@@ -1,97 +1,114 @@
-This is an abstract template.
-
-# Design Tic Tac Toe
+# Design Splitwise
 
 ## Requirements
 
-Imagine how your product generate value?
-
 ### Functional requirements
 
-1. Should show the current state of the game
-2. Should be playable by 2 users
-3. Should be able to play a valid move
-4. Should be able to tell if the game is over and the winner or draw
-5. Should be able to restart the game
-6. Should be able to undo the previous move by a user
-7. Online game
-8. Leaderboard
-9. -> freq of updation -> idempotency -> realtime(how much delay is acceptable) -> caching -> number of users ->
-10. dont ask -> Locale/Languages/internationalization? Timezone? -> ask things which will infulence the db discussion this will turn in HLD
-
-Ask if you want in-memory->mongo or relational-db-design
-
-<!--
-1. online game
-2. Match making algorithm
-3.  Keep count of user wins -> can be optional
-4.  Comments
-5.  Analytics
-6.  User guide on next move / Game analysis
-7.  Multiple viewership?
-8.  Multiple players? -->
-
-Optional?
+1. New users can be added
+2. New groups can be created, and users can be added to groups
+3. Expense can be tracked into a group
+4. Expense can be made by users, and money can be owed by users
+5. Find how much a user owes/is owed
+6. Total expenses of a group
 
 ### Non functional requirements
 
-1. Caching
-2. Single player
+1. Auth
+2. Security
+3. Availibilty
+4. Access Management
+5. Concurrency
+6. Caching
+7. Portability
 
 ## Bottom up approach
 
 ### Actors involved
 
-Players
-Users
+User
 
 ### Enitites involved
 
-1. Game
-2. Board
-3. User -> name
-4. Player -> attached to a game -> assigned a symbol
-5. Move -> transcation
+User
+Group
+Expense
+
+### Models
+
+```typescript
+User {
+  id: string;
+  name: string;
+}
+
+GroupVsUser {
+  group_id: string;
+  user_id: string;
+}
+
+Group {
+    id: string;
+    name: string;
+},
+
+Expense {
+    id: string;
+    name: string;
+    group_id: string;
+}
+
+Balance {
+    expense_id: string;
+    user_id: string;
+    // amount +ve means the user payed the amount
+    // amount -ve means the user owes the amount
+    amount: number;
+    currency: 'INR';
+}
+
+old_balance {
+    user_id: string;
+    total_amount_owed: number;
+}
+
+restaraunt ->
+Tatha-> +100,
+tiw-> +200,
+tathagat -> -50,
+barde -> -250
+
+```
+
+Services
+
+- UserService
+
+  - Adds new users to the service
+  - CRUD on users
+  - Given User_id, tells how much the user is owed in total
+    - ask group service on how many groups this user is part of
+    -
+
+- GroupService
+
+  - Adds new groups
+  - Adds Users to groups
+
+- ExpenseService
+  - Given group_id, tells total spending of the group
+  - Creation of expense for the group
+  - Creation of balance for the expense
+  -
+
+## API CONTRACT
+
+### METHOD ROUTE REQBODY RESBODY
 
 ```typescript
 
-Game {
-    id
-    nextPlayerMoveIndex: User
-    Outcome/Status : WON | DRAW | IN_PROGRESS | READY
-    board: Board
-    Array<PlayingUser>
-    history: Array<Move>
-    winnerPlayer: null | PlayingUser
-}
+```
 
-Board {
-    // id is not required as it does not make sense to have it as an independent entity
-    state: Array<Array<SYMBOL>>
-    size
-}
-
-User {
-    id
-    name
-}
-
-PlayingUserMeta {
-    assignedSymbol: SYMBOL
-}
-
-PlayingUser = User & PlayingUserMeta;
-
-Move {
-    PlayingUser,
-    location: Coordinate,
-}
-
-//0th indexed
-Coordinate {
-    x
-    y
-}
+```typescript
 
 ```
 
@@ -100,69 +117,4 @@ npm init -y
 npm i express dotenv typescript @tsconfig/node18 compression body-parser cors module-alias tstl
 npm i -D typescript @types/express @types/node @types/compression @types/cors concurrently nodemon
 npx tsc --init
-```
-
-## API CONTRACT
-
-### METHOD ROUTE REQBODY RESBODY
-
-```typescript
-//get the current state of the game
-GET /game/:id/ {
-    // userIds: Array<string>
-    } {
-    Game: {
-        id: string;
-        nextPlayerMoveIndex: number;
-        outcome: Outcome;
-        board: Board: {
-            id: string;
-            state: Array<Array<Symbol>>;
-            size: number;
-        };
-        playingUsers: Array<PlayingUser>; //size 2
-        moveHistory: Array<Move>;
-        winningPlayer: null | PlayingUser;
-    }
-}
-
-//create a new game
-POST /game {
-    userIds: Array<string>
-} {
-id: string
-boardState: Array<Array<SYMBOL>>
-Map<userId: AssignedSymbol>
-}
-
-//make a move
-POST /game/:id/move {
-userId: string,
-moveType: MOVE_TYPE.ADD | MOVE_TYPE.UNDO
-movePayload: {
-    location: Coordinate
-} | null
-}{
-boardState: Array<Array<SYMBOL>>
-outcome: OUTCOME
-}
-
-//restart the game
-PUT game/:id/restart {
-    userId: string,
-} {
-    boardState: Array<Array<SYMBOL>>
-    Map<userId: AssignedSymbol>
-    outcome: OUTCOME
-}
-
-//undo the previous move by a paritcular user
-POST /game/:id/undo {
-    userId: string,
-} {
-    boardState: Array<Array<SYMBOL>>
-    Map<userId: AssignedSymbol>
-    outcome: OUTCOME
-}
-
 ```
